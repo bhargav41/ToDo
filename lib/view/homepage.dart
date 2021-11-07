@@ -1,92 +1,57 @@
 import 'package:flutter/material.dart';
-import 'package:todo/view/task_view.dart';
+import 'package:todo/services/task_service.dart';
+import 'package:todo/view/add_task_view.dart';
 
-List<String> tasks = [];
-
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: const Text("To Do"),
-          actions: [
-            IconButton(
-              icon: const Icon(
-                Icons.navigate_next,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => TaskView(tasks)));
-              },
-            ),
-          ],
-        ),
-        body: Center(
-          child: ElevatedButton(
-            onPressed: () {
-              showAlertDialog(context);
-            },
-            child: const Text("Add Task"),
-          ),
-        ));
-  }
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-showAlertDialog(BuildContext context) {
-  const snackbar = SnackBar(
-    duration: Duration(seconds: 2),
-    content: Text("Saved Successfully"),
-  );
-  TextEditingController txt = TextEditingController();
-  Widget cancelButton = TextButton(
-    child: const Text("Cancel"),
-    onPressed: () {
-      Navigator.pop(context);
-    },
-  );
-  Widget continueButton = TextButton(
-    child: const Text("Save"),
-    onPressed: () {
-      tasks.add(txt.text);
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(snackbar);
-    },
-  );
-  AlertDialog alert = AlertDialog(
-    title: const Text("Add Task"),
-    content: SizedBox(
-      height: MediaQuery.of(context).size.height / 5,
-      child: Column(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text("Enter Task Details"),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextFormField(
-              controller: txt,
-              decoration: const InputDecoration(
-                hintText: 'Add Task Name',
-                labelText: 'Task',
-              ),
+class _MyHomePageState extends State<MyHomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        floatingActionButton: Card(
+          elevation: 5.0,
+          color: Colors.blue,
+          child: IconButton(
+            icon: const Icon(
+              Icons.add,
+              color: Colors.white,
             ),
-          )
-        ],
-      ),
-    ),
-    actions: [
-      cancelButton,
-      continueButton,
-    ],
-  );
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return alert;
-    },
-  );
+            onPressed: () async {
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const AddTask()));
+              setState(() {
+                TaskService.tasks;
+              });
+            },
+          ),
+        ),
+        appBar: AppBar(
+          title: const Text("To Do"),
+        ),
+        body: ListView.builder(
+            itemCount: TaskService.tasks.length,
+            itemBuilder: (BuildContext context, int index) {
+              return ListTile(
+                subtitle: Text("Task ${index + 1}"),
+                title: Text(TaskService.tasks[index].title),
+                trailing: IconButton(
+                  icon: const Icon(
+                    Icons.delete,
+                    color: Colors.red,
+                  ),
+                  onPressed: () {
+                    TaskService().removeTask(task: TaskService.tasks[index]);
+                    setState(() {
+                      TaskService.tasks;
+                    });
+                  },
+                ),
+              );
+            }));
+  }
 }
